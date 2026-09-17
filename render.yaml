@@ -2,7 +2,7 @@ services:
   - type: web
     name: pava-event-tracker
     runtime: node
-    plan: starter            # free works too, but sleeps after 15 min (≈50 s cold start)
+    plan: free               # sleeps after 15 min idle (≈50 s cold start); switch to starter if that gets annoying
     region: frankfurt
     branch: main
     buildCommand: ""
