@@ -40,7 +40,7 @@ function safeEqual(a, b) {
 }
 
 // ---------- storage (GitHub contents API, local fallback) ----------
-const cache = new Map(); // slug -> {data, sha, pending, timer, version}
+const cache = new Map(); // slug -> {data, sha, pending, timer, version, checked}
 const gh = (p, opt = {}) => fetch(`https://api.github.com/repos/${GH_REPO}/${p}`, {
   ...opt,
   headers: { Authorization: `Bearer ${GH_TOKEN}`, Accept: 'application/vnd.github+json', 'User-Agent': 'event-tracker', ...(opt.headers || {}) },
@@ -64,7 +64,21 @@ async function listEvents() {
 
 async function load(slug) {
   if (!slugOk(slug)) throw Object.assign(new Error('bad slug'), { status: 400 });
-  if (cache.has(slug)) return cache.get(slug);
+  if (cache.has(slug)) {
+    const c = cache.get(slug);
+    // pick up commits made outside the app (Anni, manual edits) — at most every 30 s, never over unsaved edits
+    if (GH_TOKEN && !c.pending.length && !c.timer && Date.now() - (c.checked || 0) > 30000) {
+      c.checked = Date.now();
+      try {
+        const r = await gh(`contents/data/${slug}.json?ref=${GH_BRANCH}`);
+        if (r.ok) {
+          const j = await r.json();
+          if (j.sha !== c.sha) { c.data = JSON.parse(Buffer.from(j.content, 'base64').toString('utf8')); c.sha = j.sha; c.version++; }
+        }
+      } catch (_) {}
+    }
+    return c;
+  }
   let entry;
   if (GH_TOKEN) {
     const r = await gh(`contents/data/${slug}.json?ref=${GH_BRANCH}`);
@@ -78,7 +92,7 @@ async function load(slug) {
     if (!fs.existsSync(f)) throw Object.assign(new Error('not found'), { status: 404 });
     entry = { data: JSON.parse(fs.readFileSync(f, 'utf8')), sha: null };
   }
-  entry.version = 1; entry.pending = []; entry.timer = null;
+  entry.version = 1; entry.pending = []; entry.timer = null; entry.checked = Date.now();
   cache.set(slug, entry);
   return entry;
 }
