@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Pava Event Tracker</title>
+<style>
+:root{--bg:#F2F5F6;--surface:#fff;--ink:#12222A;--muted:#5A6B73;--line:#D9E2E5;--accent:#0B6F7E;--bad:#A63A3A}
+@media (prefers-color-scheme:dark){:root{--bg:#0E1719;--surface:#152226;--ink:#E4EEF0;--muted:#93A6AD;--line:#26383D;--accent:#4FC3D2;--bad:#EC8A8A}}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:16px;box-sizing:border-box}
+form{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;width:100%;max-width:340px;display:grid;gap:12px}
+h1{font-size:18px;margin:0}p{margin:0;color:var(--muted)}
+input{font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+button{font:600 15px system-ui,sans-serif;padding:9px;border:0;border-radius:6px;background:var(--accent);color:var(--surface);cursor:pointer}
+.err{color:var(--bad)}
+</style></head><body>
+<form method="post" action="/login">
+<h1>Pava Event Tracker</h1>
+<p>Team access. Enter the shared password.</p>
+<!--msg-->
+<label for="password" hidden>Password</label>
+<input id="password" name="password" type="password" autocomplete="current-password" placeholder="Password" required autofocus>
+<button type="submit">Sign in</button>
+</form>
+</body></html>
