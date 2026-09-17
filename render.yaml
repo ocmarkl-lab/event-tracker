@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: pava-event-tracker
+    runtime: node
+    plan: starter            # free works too, but sleeps after 15 min (≈50 s cold start)
+    region: frankfurt
+    branch: main
+    buildCommand: ""
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    autoDeploy: true
+    buildFilter:
+      ignoredPaths:
+        - data/**            # tracker edits are committed here — must not trigger redeploys
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: GITHUB_REPO
+        value: ocmarkl-lab/event-tracker
+      - key: GITHUB_BRANCH
+        value: main
+      - key: CLAUDE_MODEL
+        value: claude-opus-5
+      - key: APP_PASSWORD
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
