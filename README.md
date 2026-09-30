@@ -33,7 +33,7 @@ Add `data/<slug>.json` (copy `data/ecoc-2026.json`): event header fields, `tiers
 
 ## Chat scope
 
-Available to anyone logged in, but limited to the event being viewed: the system prompt only contains that event's rows and tells the model to decline anything else. Its only tool is `update_company` (status/slot/notes/contact of an existing row in that event). It has no connection to DealTracks, CRM, mail or calendars — it offers paste-ready text instead. Rate limit: 40 chat requests per hour per IP. Requires `ANTHROPIC_API_KEY`; without it the chat button is hidden.
+Available to anyone logged in, but limited to the event being viewed: the system prompt only contains that event's rows and tells the model to decline anything else. Its only tool is `update_company` (status/slot/notes/contact of an existing row in that event). It has no connection to DealTracks, CRM, mail or calendars — it offers paste-ready text instead. Rate limit: 100 chat requests per hour per IP. Requires `ANTHROPIC_API_KEY`; without it the chat button is hidden.
 
 ## Local
 

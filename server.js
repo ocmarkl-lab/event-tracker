@@ -219,13 +219,13 @@ async function chat(slug, messages, by) {
   return { text: 'Stopped after several tool steps — please check the tracker.', changed };
 }
 
-// chat rate limit: 40 requests per hour per client IP (shared password = shared API key spend)
+// chat rate limit: 100 requests per hour per client IP (shared password = shared API key spend)
 const chatHits = new Map();
 function chatAllowed(req) {
   const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
   const now = Date.now(), hour = 3600e3;
   const hits = (chatHits.get(ip) || []).filter(t => now - t < hour);
-  if (hits.length >= 40) { chatHits.set(ip, hits); return false; }
+  if (hits.length >= 100) { chatHits.set(ip, hits); return false; }
   hits.push(now); chatHits.set(ip, hits); return true;
 }
 
@@ -279,7 +279,7 @@ http.createServer(async (req, res) => {
     }
     m = /^\/api\/events\/([a-z0-9-]+)\/chat$/.exec(url.pathname);
     if (m && req.method === 'POST') {
-      if (!chatAllowed(req)) return send(res, 429, { error: 'Chat limit reached (40 messages per hour per person) — try again later.' });
+      if (!chatAllowed(req)) return send(res, 429, { error: 'Chat limit reached (100 messages per hour per person) — try again later.' });
       const b = await readBody(req);
       const out = await chat(m[1], Array.isArray(b.messages) ? b.messages : [], String(b.by || 'someone').slice(0, 60));
       return send(res, 200, { ...out, version: cache.get(m[1]).version });
