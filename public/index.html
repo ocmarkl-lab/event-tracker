@@ -105,12 +105,8 @@ footer{margin-top:28px;color:var(--muted);font-size:12px;max-width:80ch}
 <aside id="chat" hidden aria-label="Chat">
   <header><b>Ask the tracker</b><button class="btn ghost" id="chatClose">Close</button></header>
   <div id="log">
-    <div class="msg assistant">Ask about targets, plan a floor route, draft outreach, or tell me to update the tracker (e.g. “Albis confirmed Wed 11:00”).</div>
-    <div class="hints">
-      <button class="chip hint">Plan a Wednesday route through all Tier-1 stands</button>
-      <button class="chip hint">Draft a LinkedIn note to Lumiphase</button>
-      <button class="chip hint">Which acquirers fit Albis?</button>
-    </div>
+    <div class="msg assistant" id="chatIntro">Ask about this event's targets, plan meetings, draft outreach, or tell me to update the tracker (e.g. “Quside confirmed Thu 16:15”). I only cover this event and can't write to DealTracks.</div>
+    <div class="hints" id="chatHints"></div>
   </div>
   <form id="chatForm"><textarea id="chatIn" rows="1" placeholder="Message" aria-label="Message"></textarea><button class="btn" id="chatSend">Send</button></form>
 </aside>
@@ -183,7 +179,14 @@ function applyFilter(){
     sec.querySelectorAll('tbody tr').forEach(tr=>tr.classList.toggle('hide', !!q && !tr.dataset.hay.includes(q)));
   });
 }
-function renderAll(persist){ renderHead(persist); renderKpis(); renderRows(); }
+function renderHints(){
+  const t1 = ev.rows.find(r=>r.tier==='t1'), buy = Object.keys(ev.tiers).includes('buy');
+  const h = ['Who should we book first, and in which slot?'];
+  if (t1) h.push('Draft a short LinkedIn note to ' + t1.company);
+  if (t1 && buy) h.push('Which buyers on the list fit ' + t1.company + '?');
+  $('#chatHints').innerHTML = h.map(x=>`<button class="chip hint">${esc(x)}</button>`).join('');
+}
+function renderAll(persist){ renderHead(persist); renderKpis(); renderRows(); renderHints(); }
 
 async function loadEvent(){
   const j = await api('/api/events/'+slug);
