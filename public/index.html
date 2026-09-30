@@ -105,7 +105,7 @@ footer{margin-top:28px;color:var(--muted);font-size:12px;max-width:80ch}
 <aside id="chat" hidden aria-label="Chat">
   <header><b>Ask the tracker</b><button class="btn ghost" id="chatClose">Close</button></header>
   <div id="log">
-    <div class="msg assistant" id="chatIntro">Ask about this event's targets, plan meetings, draft outreach, or tell me to update the tracker (e.g. “Quside confirmed Thu 16:15”). I only cover this event and can't write to DealTracks.</div>
+    <div class="msg assistant" id="chatIntro">Ask about this event's targets, plan meetings, draft outreach, or tell me to update the tracker (e.g. “Quside confirmed Thu 16:15”). I can look up email addresses for companies on this list and draft emails you open in your own mail app. I only cover this event and can't write to DealTracks.</div>
     <div class="hints" id="chatHints"></div>
   </div>
   <form id="chatForm"><textarea id="chatIn" rows="1" placeholder="Message" aria-label="Message"></textarea><button class="btn" id="chatSend">Send</button></form>
@@ -182,7 +182,7 @@ function applyFilter(){
 function renderHints(){
   const t1 = ev.rows.find(r=>r.tier==='t1'), buy = Object.keys(ev.tiers).includes('buy');
   const h = ['Who should we book first, and in which slot?'];
-  if (t1) h.push('Draft a short LinkedIn note to ' + t1.company);
+  if (t1) h.push('Find the CEO\'s email at ' + t1.company + ' and draft an intro email');
   if (t1 && buy) h.push('Which buyers on the list fit ' + t1.company + '?');
   $('#chatHints').innerHTML = h.map(x=>`<button class="chip hint">${esc(x)}</button>`).join('');
 }
@@ -242,6 +242,10 @@ $('#chatClose').onclick = ()=>{ $('#chat').hidden=true; $('#chatBtn').hidden=fal
 function addMsg(role, text){
   const d = document.createElement('div'); d.className = 'msg '+role; d.textContent = text;
   if (role==='assistant' && text.length>60){ const b=document.createElement('button'); b.className='copy'; b.type='button'; b.textContent='Copy'; b.dataset.t=text; d.appendChild(b); }
+  if (role==='assistant'){ const m = /^\s*To:\s*(.*)\n\s*Subject:\s*(.*)\n\n([\s\S]+)$/m.exec(text);
+    if (m){ const a=document.createElement('a'); a.className='copy'; a.textContent='Open in mail app';
+      a.href='mailto:'+encodeURIComponent(m[1].trim()).replace(/%40/g,'@')+'?subject='+encodeURIComponent(m[2].trim())+'&body='+encodeURIComponent(m[3].trim());
+      d.appendChild(a); } }
   $('#log').appendChild(d); $('#log').scrollTop = $('#log').scrollHeight; return d;
 }
 async function sendChat(){

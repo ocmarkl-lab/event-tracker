@@ -2,7 +2,7 @@
 // Zero dependencies (Node >= 20). Source of truth: data/<slug>.json in this GitHub repo.
 // Env: APP_PASSWORD (required), ANTHROPIC_API_KEY (chat), GITHUB_TOKEN (persist edits),
 //      GITHUB_REPO (default ocmarkl-lab/event-tracker), GITHUB_BRANCH (default main),
-//      CLAUDE_MODEL (default claude-opus-5), PORT.
+//      CLAUDE_MODEL (default claude-opus-5), HUNTER_API_KEY (email lookup), HUNTER_DAILY_CAP (default 60), PORT.
 'use strict';
 const http = require('http');
 const fs = require('fs');
@@ -16,6 +16,9 @@ const GH_REPO = process.env.GITHUB_REPO || 'ocmarkl-lab/event-tracker';
 const GH_BRANCH = process.env.GITHUB_BRANCH || 'main';
 const API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const MODEL = process.env.CLAUDE_MODEL || 'claude-opus-5';
+const HUNTER_KEY = process.env.HUNTER_API_KEY || '';
+const HUNTER_BASE = process.env.HUNTER_BASE_URL || 'https://api.hunter.io';
+const HUNTER_DAILY_CAP = Number(process.env.HUNTER_DAILY_CAP || 60);
 const API_BASE = process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com';
 const STATUSES = ['To approach', 'Attempted', 'Confirmed', 'Met', 'Declined', 'Skip'];
 const DATA_DIR = path.join(__dirname, 'data');
@@ -148,6 +151,61 @@ async function flush(slug, attempt = 0) {
 setInterval(() => { for (const [slug, e] of cache) if (e.pending.length && !e.timer) flush(slug).catch(() => {}); }, 60000).unref();
 
 // ---------- chat (Anthropic Messages API with an update tool) ----------
+const HUNTER_TOOLS = [{
+  name: 'find_email',
+  description: 'Look up the business email address of a named person at a company that is already a row in this tracker (Hunter.io email finder). Use when the user asks for someone\'s email. Costs one lookup credit — do not call speculatively.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      row_id: { type: 'string', description: 'Row id of the company in this tracker' },
+      first_name: { type: 'string' },
+      last_name: { type: 'string' },
+      domain: { type: 'string', description: 'Company web domain if known (e.g. quside.com); otherwise the company name from the row is used' },
+    },
+    required: ['row_id', 'first_name', 'last_name'],
+  },
+}, {
+  name: 'find_company_contacts',
+  description: 'List people with known email addresses at a company that is already a row in this tracker (Hunter.io domain search, max 10). Use when the user wants a contact but has no name. Costs one lookup credit.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      row_id: { type: 'string', description: 'Row id of the company in this tracker' },
+      domain: { type: 'string', description: 'Company web domain if known' },
+      seniority: { type: 'string', enum: ['executive', 'senior', 'junior'], description: 'Optional filter' },
+    },
+    required: ['row_id'],
+  },
+}];
+
+let hunterDay = '', hunterUsed = 0;
+async function hunter(name, input, ev) {
+  if (!HUNTER_KEY) throw new Error('Email lookup is not configured (HUNTER_API_KEY missing).');
+  const row = ev.rows.find(r => r.id === input.row_id);
+  if (!row) throw new Error('Email lookup is only allowed for companies in this tracker; unknown row_id.');
+  const today = new Date().toISOString().slice(0, 10);
+  if (today !== hunterDay) { hunterDay = today; hunterUsed = 0; }
+  if (hunterUsed >= HUNTER_DAILY_CAP) throw new Error(`Daily email-lookup cap (${HUNTER_DAILY_CAP}) reached.`);
+  hunterUsed++;
+  const q = new URLSearchParams({ api_key: HUNTER_KEY });
+  const dom = String(input.domain || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  if (dom) q.set('domain', dom); else q.set('company', row.company.replace(/\s*\(.*\)\s*$/, ''));
+  let url;
+  if (name === 'find_email') {
+    q.set('first_name', String(input.first_name)); q.set('last_name', String(input.last_name));
+    url = HUNTER_BASE + '/v2/email-finder?' + q;
+  } else {
+    q.set('limit', '10'); if (input.seniority) q.set('seniority', input.seniority);
+    url = HUNTER_BASE + '/v2/domain-search?' + q;
+  }
+  const r = await fetch(url);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error('Hunter error ' + r.status + ': ' + JSON.stringify(j.errors || j).slice(0, 200));
+  const d = j.data || {};
+  if (name === 'find_email') return { company: row.company, domain: d.domain, email: d.email || null, score: d.score, position: d.position, verification: d.verification && d.verification.status };
+  return { company: row.company, domain: d.domain, pattern: d.pattern, contacts: (d.emails || []).map(e => ({ name: [e.first_name, e.last_name].filter(Boolean).join(' '), position: e.position, email: e.value, confidence: e.confidence, verification: e.verification && e.verification.status })) };
+}
+
 const TOOLS = [{
   name: 'update_company',
   description: 'Update one company row in the tracker: status, meeting slot, notes or contact. Only call this when the user clearly asks for a change.',
@@ -182,20 +240,29 @@ Scope (strict):
 Rules:
 - Answer briefly and concretely, from the tracker data. Say clearly when something is not in the data; do not invent facts, names or email addresses. "⚠" marks unverified items.
 - You can draft outreach (email or LinkedIn note, max ~120 words) and suggest a meeting plan using the "stand" field (booth, pitch session or panel slot).
+- Email drafts: write them in exactly this shape so the app can open them in the user's mail program:
+To: <address or leave empty>
+Subject: <subject>
+
+<body>
+  Sign off with the user's name if known ("by" field), otherwise "[Name]". You cannot send email or create drafts in anyone's mailbox — the user opens the draft on their own device.
+- Email addresses: first use the contact field in the tracker. If missing and the tools are available, use find_email (named person) or find_company_contacts (no name) — only for companies in this tracker. Report the verification status/score; say "unverified" when it is not "valid". Offer to save a found address into the row's contact field (update_company) — only save when the user agrees.
 - The only thing you can change is this tracker, via update_company (status, slot, notes, contact of an existing row). Only do so when explicitly asked; then confirm what changed.
 - Reply in the language the user writes in.`;
 }
 
 async function chat(slug, messages, by) {
+  // messages from the UI carry the user's name in `by`; pass it to the model so drafts can be signed
   if (!API_KEY) throw Object.assign(new Error('Chat is not configured (ANTHROPIC_API_KEY missing).'), { status: 503 });
   const e = await load(slug);
   const convo = messages.slice(-20).map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content).slice(0, 8000) }));
+  if (convo.length && convo[convo.length - 1].role === 'user') convo[convo.length - 1].content = `[user: ${by}] ` + convo[convo.length - 1].content;
   const changed = [];
-  for (let round = 0; round < 4; round++) {
+  for (let round = 0; round < 6; round++) {
     const r = await fetch(API_BASE + '/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: MODEL, max_tokens: 1500, system: systemPrompt(e.data), tools: TOOLS, messages: convo }),
+      body: JSON.stringify({ model: MODEL, max_tokens: 1500, system: systemPrompt(e.data), tools: HUNTER_KEY ? TOOLS.concat(HUNTER_TOOLS) : TOOLS, messages: convo }),
     });
     if (!r.ok) throw Object.assign(new Error('Claude API error ' + r.status + ': ' + (await r.text()).slice(0, 300)), { status: 502 });
     const j = await r.json();
@@ -207,6 +274,11 @@ async function chat(slug, messages, by) {
     const results = [];
     for (const u of uses) {
       try {
+        if (u.name === 'find_email' || u.name === 'find_company_contacts') {
+          const found = await hunter(u.name, u.input || {}, e.data);
+          results.push({ type: 'tool_result', tool_use_id: u.id, content: JSON.stringify(found) });
+          continue;
+        }
         const row = await update(slug, { ...u.input, by: `${by} via chat` });
         changed.push(row.id);
         results.push({ type: 'tool_result', tool_use_id: u.id, content: JSON.stringify({ ok: true, row }) });
@@ -265,7 +337,7 @@ http.createServer(async (req, res) => {
     }
     if (url.pathname === '/logout') return send(res, 303, '', { Location: '/', 'Set-Cookie': 'et_session=; Path=/; Max-Age=0' });
     if (url.pathname === '/' || url.pathname.startsWith('/e/')) return send(res, 200, page('index.html'));
-    if (url.pathname === '/api/events' && req.method === 'GET') return send(res, 200, { events: await listEvents(), chat: !!API_KEY, persist: !!GH_TOKEN });
+    if (url.pathname === '/api/events' && req.method === 'GET') return send(res, 200, { events: await listEvents(), chat: !!API_KEY, emailLookup: !!HUNTER_KEY, persist: !!GH_TOKEN });
     let m = /^\/api\/events\/([a-z0-9-]+)$/.exec(url.pathname);
     if (m && req.method === 'GET') {
       const e = await load(m[1]);
