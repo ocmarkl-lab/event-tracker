@@ -5,7 +5,7 @@
  "venue": "Milan + Turin + Como/Brianza + Bergamo/Brescia + Emilia",
  "conference": "Window A: day trip this week (Wed 28 / Thu 29 Oct) · Window B: trip around Investor Days 25–26 Nov 2026",
  "exhibition": "Investor Days Lombardia 25–26 Nov · SIOS26 Winter 16 Dec · A&T Turin 10–12 Feb 2027 · MECSPE Bologna 3–5 Mar 2027",
- "screened": "Open sources to 26 Oct 2026; 63 companies, investors, buyers and funnels",
+ "screened": "Open sources to 26 Oct 2026; 64 companies, investors, buyers and funnels",
  "alert": "This week: warm contacts only (Join Milan, 360 Capital, Ephos; BeDimensional in Genoa). November: Investor Days + Technoprobe, SAES, CDP VC, Microtest/Xenon, Officina Stellare. Turin day for Argotec, SPEA, Osai, Prima, Comau.",
  "tiers": {
   "t1": {"name": "Tier 1 — sell-side / raise candidates", "sub": "Northern Italy companies with a 12–24-month trigger. Book first."},
@@ -16,7 +16,7 @@
   "comp": {"name": "Competitors / co-advisers", "sub": "No one owns deeptech €30–300m in Italy."}
  },
  "footer": "Open sources to 26 Oct 2026. ⚠ = not verified from a primary source. Corp-dev and CEO names to be confirmed via RocketReach/Hunter before outreach.",
- "updatedAt": "2026-10-26T13:00:00Z",
+ "updatedAt": "2026-10-26T13:20:00Z",
  "rows": [
   {"id": "microtest-eles", "tier": "t1", "company": "Microtest (+ Eles)", "country": "IT · Altopascio / Todi", "stand": "", "sector": "Semiconductor test equipment incl. SiC/GaN (ipTEST)", "why": "Xenon PE 60% since 2022. Bought RoodMicrotec, ipTEST (2024) and took Eles private (EV €58.7m, 04/2026). 4+ year hold → exit 2027–28 or buy-side work now.", "contact": "Franco Prestigiacomo ⚠ role", "status": "To approach", "slot": "", "notes": "Pemberton bond size ⚠", "updatedBy": "", "updatedAt": ""},
   {"id": "argotec", "tier": "t1", "company": "Argotec", "country": "IT · Turin", "stand": "", "sector": "Smallsats and deep-space microsats", "why": "FY25 revenue €57m (+60%), EBITDA >€16m, 2026 target €100m. First external round 'within weeks' (Sep 2026), second early 2027, Nasdaq as exit.", "contact": "David Avino (founder-CEO)", "status": "To approach", "slot": "", "notes": "EV may exceed €300m ⚠", "updatedBy": "", "updatedAt": ""},
@@ -71,6 +71,7 @@
   {"id": "comau-oep", "tier": "buy", "company": "Comau (OEP)", "country": "IT", "stand": "", "sector": "Robotics", "why": "Automha (08/2025) → software, cobots, vision.", "contact": "", "status": "To approach", "slot": "", "notes": "", "updatedBy": "", "updatedAt": ""},
   {"id": "coesia", "tier": "buy", "company": "Coesia", "country": "IT", "stand": "", "sector": "Packaging automation", "why": "PWR minority (2024) → robotics, machine vision.", "contact": "Alessandro Parimbelli (CEO)", "status": "To approach", "slot": "", "notes": "", "updatedBy": "", "updatedAt": ""},
   {"id": "seco", "tier": "buy", "company": "SECO", "country": "IT", "stand": "", "sector": "Edge AI hardware", "why": "H1 2026 revenue €98.7m. Embedded consolidator.", "contact": "", "status": "To approach", "slot": "", "notes": "", "updatedBy": "", "updatedAt": ""},
+  {"id": "douglas-aguilar-photonpath", "tier": "eco", "company": "Douglas Aguilar (PhotonPath → Ciena)", "country": "IT · Milan", "stand": "", "sector": "Photonics founder-CEO, exited 09/2026", "why": "PhotonPath (PoliMi spin-off) sold to Ciena 09/2026. Connector for Milan photonics scene and the 360/Join/Deep Ocean/CDP investor circle. Meet on every Milan visit.", "contact": "Douglas Aguilar", "status": "To approach", "slot": "", "notes": "CEO role per Oliver, not in press ⚠", "updatedBy": "", "updatedAt": ""},
   {"id": "investor-days-2026-lombardia", "tier": "eco", "company": "Investor Days 2026 (Lombardia)", "country": "IT", "stand": "", "sector": "25–26 Nov, Milan", "why": "Deeptech scale-ups meet investors. Anchor date for a Milan trip.", "contact": "", "status": "To approach", "slot": "", "notes": "", "updatedBy": "", "updatedAt": ""},
   {"id": "silicon-box-novara", "tier": "eco", "company": "Silicon Box Novara", "country": "IT", "stand": "", "sector": "€3.2bn chiplet fab", "why": "Invitalia approval 01.10.2026, construction from spring 2027. Packaging cluster.", "contact": "", "status": "To approach", "slot": "", "notes": "", "updatedBy": "", "updatedAt": ""},
   {"id": "a-t-automation-testing", "tier": "eco", "company": "A&T Automation & Testing", "country": "IT", "stand": "", "sector": "10–12 Feb 2027, Turin", "why": "Robotics, metrology, test — Turin day.", "contact": "", "status": "To approach", "slot": "", "notes": "", "updatedBy": "", "updatedAt": ""},
