@@ -18,7 +18,7 @@ const API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const MODEL = process.env.CLAUDE_MODEL || 'claude-opus-5';
 
 const API_BASE = process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com';
-const STATUSES = ['To approach', 'Attempted', 'Confirmed', 'Met', 'Declined', 'Skip'];
+const STATUSES = ['Open', 'To approach', 'Attempted', 'Confirmed', 'Met', 'Declined', 'Skip'];
 const DATA_DIR = path.join(__dirname, 'data');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 

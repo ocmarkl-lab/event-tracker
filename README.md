@@ -22,7 +22,7 @@ Shared meeting tracker for trade fairs and conferences (ECOC, SEMICON, Laser Wor
 
 Add `data/<slug>.json` (copy `data/ecoc-2026.json`): event header fields, `tiers`, and `rows[]` with
 `id, tier, company, country, stand, sector, why, contact, status, slot, notes, updatedBy, updatedAt`.
-`status` ∈ `To approach | Attempted | Confirmed | Met | Declined | Skip`. The app lists all files in `data/` automatically — no redeploy needed. URL: `/e/<slug>`.
+`status` ∈ `Open | To approach | Attempted | Confirmed | Met | Declined | Skip`. New events start every row as `Open` (screened, not yet selected); the team sets `To approach` deliberately for the rows to contact. The app lists all files in `data/` automatically — no redeploy needed. URL: `/e/<slug>`.
 
 ## API
 
